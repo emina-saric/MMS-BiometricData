@@ -16,7 +16,8 @@ namespace Biometric_API.Controllers
         private Biometric_APIContext db = new Biometric_APIContext();
 
         //TODO: faster processing unsafe code fazon
-        public async Task<IHttpActionResult> performMatching(string path)
+        [Route("api/match")]
+        public IHttpActionResult performMatching(string path)
         {
             Bitmap imgOrig = new Bitmap(Image.FromFile(path), 100, 50);
             List<string> imgPaths = db.Database.SqlQuery<string>("SELECT data FROM biometricdatamodels").ToList();
