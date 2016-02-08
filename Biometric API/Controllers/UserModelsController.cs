@@ -1,21 +1,39 @@
-﻿using System;
+﻿using Biometric_API.Models;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Drawing;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
-using Biometric_API.Models;
 
 namespace Biometric_API.Controllers
 {
     public class UserModelsController : ApiController
     {
         private Biometric_APIContext db = new Biometric_APIContext();
+
+        //TODO: faster processing unsafe code fazon
+        public async Task<IHttpActionResult> performMatching(string path)
+        {
+            Bitmap imgOrig = new Bitmap(Image.FromFile(path), 100, 50);
+            List<string> imgPaths = db.Database.SqlQuery<string>("SELECT data FROM biometricdatamodels").ToList();
+            foreach (string imgPath in imgPaths)
+            {
+                Bitmap img2compare = new Bitmap(imgPath);
+                for (int i = 0; i < 100; i++)
+                {
+                    for (int j = 0; j < 50; j++)
+                    {
+                        if (imgOrig.GetPixel(i, j) != img2compare.GetPixel(i, j))
+                            return NotFound();
+                    }
+                }
+            }
+            return Ok();
+        }
 
         // GET: api/UserModels
         public IQueryable<UserModels> GetUserModels()
