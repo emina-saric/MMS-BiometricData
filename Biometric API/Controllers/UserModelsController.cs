@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using BitmapProcessing;
 
 namespace Biometric_API.Controllers
 {
@@ -17,13 +18,17 @@ namespace Biometric_API.Controllers
 
         //TODO: faster processing unsafe code fazon
         [Route("api/match")]
-        public IHttpActionResult performMatching(string path)
+        unsafe public IHttpActionResult performMatching(string path)
         {
-            Bitmap imgOrig = new Bitmap(Image.FromFile(path), 100, 50);
+            Bitmap img = new Bitmap(Image.FromFile(path), 100, 50);
+            FastBitmap imgOrig = new FastBitmap(img);
             List<string> imgPaths = db.Database.SqlQuery<string>("SELECT data FROM biometricdatamodels").ToList();
+            imgOrig.LockImage();
             foreach (string imgPath in imgPaths)
             {
-                Bitmap img2compare = new Bitmap(imgPath);
+                Bitmap img2 = new Bitmap(imgPath);
+                FastBitmap img2compare = new FastBitmap(img2);
+                img2compare.LockImage();
                 for (int i = 0; i < 100; i++)
                 {
                     for (int j = 0; j < 50; j++)
@@ -32,7 +37,11 @@ namespace Biometric_API.Controllers
                             return NotFound();
                     }
                 }
+                img2compare.UnlockImage();
+                img2.Dispose();
             }
+            imgOrig.UnlockImage();
+            img.Dispose();
             return Ok();
         }
 
