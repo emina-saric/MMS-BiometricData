@@ -28,29 +28,54 @@ namespace Biometric_API.Controllers
             {
                 Bitmap img2 = new Bitmap(model.Data);
                 FastBitmap img2compare = new FastBitmap(img2);
-                img2compare.LockImage();
                 bool mismatch = false;
+                float mismatchLvl = 0, minMismatch = 500;
+                int userID = -1;
+                img2compare.LockImage();                
                 for (int i = 0; i < 100; i++)
                 {
                     for (int j = 0; j < 50; j++)
                     {
                         if (imgOrig.GetPixel(i, j) != img2compare.GetPixel(i, j))
                         {
-                            mismatch = true;
-                            break;
-                        }                            
+                            mismatchLvl++;
+                            if (mismatchLvl < minMismatch)
+                            {
+                                minMismatch = mismatchLvl;
+                                userID = model.UserId;
+                            }                                
+                            
+                            if (mismatchLvl > 500)
+                            {
+                                mismatch = true;
+                                break;
+                            }
+                        }
                     }
                     if (mismatch)
                         break;
                 }
                 img2compare.UnlockImage();
                 img2.Dispose();
-                if (!mismatch)
-                    return Ok(model.UserId);
+                if (userID != -1)
+                    return Ok(userID);
             }
             imgOrig.UnlockImage();
             img.Dispose();
             return NotFound();
+
+            //List<BiometricDataModels> biometricData = db.BiometricDataModels.ToList();
+            //using (MagickImage img = new MagickImage(new Bitmap(path)))
+            //{
+            //    foreach (BiometricDataModels model in biometricData)
+            //    {
+            //        using (MagickImage img2compare = new MagickImage(new Bitmap(model.Data)))
+            //        {
+            //            MagickErrorInfo compInfo = img.Compare(img2compare);
+            //            img.Compare(img2compare, ErrorMetric.Undefined)
+            //        }
+            //    }
+            //}
         }
 
         // GET: api/UserModels
