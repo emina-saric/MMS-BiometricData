@@ -16,33 +16,41 @@ namespace Biometric_API.Controllers
     {
         private Biometric_APIContext db = new Biometric_APIContext();
 
-        //TODO: faster processing unsafe code fazon
         [Route("api/match")]
+        [ResponseType(typeof(int))]
         unsafe public IHttpActionResult performMatching(string path)
         {
             Bitmap img = new Bitmap(Image.FromFile(path), 100, 50);
             FastBitmap imgOrig = new FastBitmap(img);
-            List<string> imgPaths = db.Database.SqlQuery<string>("SELECT data FROM biometricdatamodels").ToList();
+            List<BiometricDataModels> biometricData = db.BiometricDataModels.ToList();
             imgOrig.LockImage();
-            foreach (string imgPath in imgPaths)
+            foreach (BiometricDataModels model in biometricData)
             {
-                Bitmap img2 = new Bitmap(imgPath);
+                Bitmap img2 = new Bitmap(model.Data);
                 FastBitmap img2compare = new FastBitmap(img2);
                 img2compare.LockImage();
+                bool mismatch = false;
                 for (int i = 0; i < 100; i++)
                 {
                     for (int j = 0; j < 50; j++)
                     {
                         if (imgOrig.GetPixel(i, j) != img2compare.GetPixel(i, j))
-                            return NotFound();
+                        {
+                            mismatch = true;
+                            break;
+                        }                            
                     }
+                    if (mismatch)
+                        break;
                 }
                 img2compare.UnlockImage();
                 img2.Dispose();
+                if (!mismatch)
+                    return Ok(model.UserId);
             }
             imgOrig.UnlockImage();
             img.Dispose();
-            return Ok();
+            return NotFound();
         }
 
         // GET: api/UserModels
