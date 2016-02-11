@@ -63,19 +63,6 @@ namespace Biometric_API.Controllers
             imgOrig.UnlockImage();
             img.Dispose();
             return NotFound();
-
-            //List<BiometricDataModels> biometricData = db.BiometricDataModels.ToList();
-            //using (MagickImage img = new MagickImage(new Bitmap(path)))
-            //{
-            //    foreach (BiometricDataModels model in biometricData)
-            //    {
-            //        using (MagickImage img2compare = new MagickImage(new Bitmap(model.Data)))
-            //        {
-            //            MagickErrorInfo compInfo = img.Compare(img2compare);
-            //            img.Compare(img2compare, ErrorMetric.Undefined)
-            //        }
-            //    }
-            //}
         }
 
         // GET: api/UserModels
